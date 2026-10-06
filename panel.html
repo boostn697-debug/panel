@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>License Manager</title>
+<style>
+
+:root{
+  --bg:#090909;
+  --s1:#101010;
+  --s2:#151515;
+  --s3:#1b1b1b;
+  --border:#242424;
+  --border2:#333333;
+  --text:#f5f5f5;
+  --text2:#d0d0d0;
+  --muted:#777777;
+  --muted2:#9a9a9a;
+
+  --accent:#f3f3f3;
+  --accent-text:#0a0a0a;
+  --accent-hover:#ffffff;
+
+  --blue:#4da3ff;
+  --blue-soft:rgba(77,163,255,.12);
+  --green:#45d483;
+  --green-soft:rgba(69,212,131,.11);
+  --yellow:#f4bb4f;
+  --yellow-soft:rgba(244,187,79,.11);
+  --red:#ff6262;
+  --red-soft:rgba(255,98,98,.11);
+  --violet:#aa8cff;
+  --violet-soft:rgba(170,140,255,.11);
+
+  --shadow:0 18px 55px rgba(0,0,0,.35);
+  --radius:12px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{
+  background:
+    radial-gradient(circle at 10% 0%,rgba(255,255,255,.035),transparent 28%),
+    linear-gradient(180deg,#0a0a0a 0%,#080808 100%);
+  color:var(--text);
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;
+  font-size:13px;
+  line-height:1.5;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;font-size:13px}
+input,select,textarea{font-family:inherit;font-size:13px}
+::selection{background:#efefef;color:#090909}
+
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#303030;border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#414141}
+
+svg{display:block}
+.ic{
+  width:18px;height:18px;display:inline-grid;place-items:center;
+  color:currentColor;flex:0 0 auto;
+}
+.ic svg{width:17px;height:17px}
+
+/* ══ LOGIN ══════════════════════════════════════════════════ */
+#login{
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  padding:24px;position:relative;overflow:hidden;
+}
+#login::before{
+  content:"";position:absolute;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.055),transparent 64%);
+  top:-260px;left:50%;transform:translateX(-50%);pointer-events:none;
+}
+.lbox{
+  width:360px;background:rgba(16,16,16,.92);border:1px solid var(--border2);
+  border-radius:18px;padding:26px;box-shadow:var(--shadow);position:relative;z-index:1;
+  backdrop-filter:blur(16px);
+}
+.login-logo{
+  width:42px;height:42px;border-radius:12px;background:#f3f3f3;color:#0a0a0a;
+  display:grid;place-items:center;margin-bottom:18px;
+  box-shadow:0 10px 28px rgba(255,255,255,.08);
+}
+.login-logo svg{width:21px;height:21px}
+.lbox h1{font-size:1.2rem;font-weight:750;letter-spacing:-.02em;margin-bottom:4px}
+.lbox .sub{font-size:.78rem;color:var(--muted2);margin-bottom:24px}
+.lfield{margin-bottom:12px}
+.lfield label{
+  display:block;font-size:.7rem;color:var(--muted2);margin-bottom:6px;
+  font-weight:650;letter-spacing:.02em
+}
+.lfield input{
+  width:100%;background:#0b0b0b;border:1px solid var(--border2);color:var(--text);
+  padding:10px 11px;border-radius:9px;outline:none;transition:.15s;
+}
+.lfield input:focus{border-color:#666;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
+.lbtn{
+  width:100%;background:var(--accent);color:var(--accent-text);border:1px solid #fff;
+  padding:10px;border-radius:9px;font-weight:750;margin-top:6px;transition:.15s;
+}
+.lbtn:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.lerr{
+  font-size:.75rem;color:#ffb4b4;background:var(--red-soft);
+  border:1px solid rgba(255,98,98,.22);padding:8px 10px;border-radius:8px;
+  margin-top:10px;display:none
+}
+
+/* ══ SHELL ══════════════════════════════════════════════════ */
+#app{display:none;height:100vh;flex-direction:column}
+.shell{display:flex;flex:1;overflow:hidden}
+
+/* ── Topbar ── */
+.topbar{
+  height:56px;background:rgba(14,14,14,.88);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;
+  backdrop-filter:blur(16px)
+}
+.topbar .brand-wrap{display:flex;align-items:center;gap:9px}
+.topbar .brand-icon{
+  width:30px;height:30px;border-radius:9px;background:#f1f1f1;color:#080808;
+  display:grid;place-items:center
+}
+.topbar .brand-icon svg{width:16px;height:16px}
+.topbar .brand{font-size:.86rem;font-weight:750;color:var(--text);letter-spacing:-.01em}
+.topbar .pill{
+  display:flex;align-items:center;gap:6px;background:#151515;border:1px solid var(--border);
+  padding:4px 10px;border-radius:20px;font-size:.69rem;color:var(--muted2)
+}
+.topbar .pill .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 3px rgba(69,212,131,.08)
+}
+.topbar .ml{margin-left:auto;display:flex;align-items:center;gap:8px}
+.topbar .out-btn{
+  background:#151515;border:1px solid var(--border2);color:var(--muted2);
+  padding:6px 12px;border-radius:8px;font-size:.74rem;transition:.15s
+}
+.topbar .out-btn:hover{color:#fff;border-color:#555;background:#1b1b1b}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:205px;background:#0e0e0e;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:14px 10px;gap:3px;flex-shrink:0
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
+  color:#888;font-size:.8rem;font-weight:560;transition:.15s;border:1px solid transparent;
+  background:none;width:100%;text-align:left
+}
+.nav-item:hover{color:#ededed;background:#151515}
+.nav-item.active{
+  color:#fff;background:#1a1a1a;border-color:#282828;
+  box-shadow:inset 3px 0 0 #f3f3f3
+}
+.nav-item.active .ic{color:#fff}
+.nav-sep{height:1px;background:var(--border);margin:9px 5px}
+
+/* ── Content ── */
+.content{flex:1;overflow-y:auto;padding:28px;max-width:1600px}
+.page{display:none;animation:fadeIn .15s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:.6;transform:translateY(2px)}to{opacity:1;transform:none}}
+.page-title{
+  font-size:1.08rem;font-weight:750;margin-bottom:20px;letter-spacing:-.015em;
+  display:flex;align-items:center;gap:8px
+}
+
+/* ── Cards ── */
+.cards{display:grid;gap:12px;margin-bottom:18px}
+.cards.c4{grid-template-columns:repeat(4,1fr)}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.card{
+  background:linear-gradient(180deg,#121212,#0f0f0f);border:1px solid var(--border);
+  border-radius:var(--radius);padding:17px 18px;position:relative;overflow:hidden;
+  transition:.15s
+}
+.card:hover{border-color:#333;transform:translateY(-1px)}
+.card .cv{font-size:1.75rem;font-weight:760;line-height:1;letter-spacing:-.04em}
+.card .cl{
+  font-size:.67rem;color:var(--muted2);text-transform:uppercase;
+  letter-spacing:.055em;margin-top:7px;font-weight:650
+}
+.card .cs{font-size:.7rem;color:var(--muted);margin-top:3px}
+
+/* ── Section box ── */
+.box{
+  background:#101010;border:1px solid var(--border);border-radius:var(--radius);
+  padding:19px 20px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.12)
+}
+.box-title{
+  font-size:.69rem;font-weight:700;color:#9c9c9c;text-transform:uppercase;
+  letter-spacing:.065em;margin-bottom:14px
+}
+.box-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+
+/* ── Form ── */
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.ff{display:flex;flex-direction:column;gap:5px}
+.ff label{font-size:.68rem;color:var(--muted2);font-weight:600}
+.ff input,.ff select{
+  background:#090909;border:1px solid var(--border2);color:var(--text);
+  padding:8px 10px;border-radius:8px;outline:none;transition:.15s
+}
+.ff input:focus,.ff select:focus{
+  border-color:#666;box-shadow:0 0 0 3px rgba(255,255,255,.04)
+}
+.ff input.w80{width:80px}.ff input.w120{width:120px}.ff input.w160{width:160px}
+.ff input.w220{width:220px}.ff select.w120{width:120px}
+
+/* ── Buttons ── */
+.btn-primary{
+  background:#f1f1f1;color:#080808;border:1px solid #fff;padding:8px 16px;
+  border-radius:8px;font-weight:750;transition:.15s
+}
+.btn-primary:hover{background:#fff;transform:translateY(-1px)}
+.btn-ghost{
+  background:#161616;border:1px solid var(--border2);color:#a3a3a3;
+  padding:7px 13px;border-radius:8px;transition:.15s
+}
+.btn-ghost:hover{color:#fff;border-color:#4a4a4a;background:#1b1b1b}
+.btn-sm{
+  padding:4px 9px;border-radius:7px;font-size:.7rem;border:1px solid var(--border2);
+  background:#151515;color:#a5a5a5;transition:.15s
+}
+.btn-sm:hover{color:#fff;border-color:#505050;background:#1d1d1d}
+.btn-sm.red:hover{color:var(--red);border-color:rgba(255,98,98,.55);background:var(--red-soft)}
+.btn-sm.yellow:hover{color:var(--yellow);border-color:rgba(244,187,79,.55);background:var(--yellow-soft)}
+.btn-sm.green:hover{color:var(--green);border-color:rgba(69,212,131,.55);background:var(--green-soft)}
+
+/* ── Search ── */
+.search-row{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.search-input{
+  background:#090909;border:1px solid var(--border2);color:var(--text);
+  padding:8px 11px;border-radius:8px;outline:none;width:220px;transition:.15s
+}
+.search-input:focus{border-color:#666;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;border:1px solid #1d1d1d;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{
+  text-align:left;padding:9px 10px;color:#777;font-weight:650;font-size:.66rem;
+  text-transform:uppercase;letter-spacing:.055em;border-bottom:1px solid var(--border);
+  white-space:nowrap;background:#0c0c0c
+}
+td{padding:10px;border-bottom:1px solid #1d1d1d;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#141414}
+.td-actions{text-align:right;white-space:nowrap;display:flex;gap:4px;justify-content:flex-end}
+
+/* ── Badges ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;
+  font-size:.66rem;font-weight:700;white-space:nowrap;border:1px solid transparent
+}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;flex-shrink:0;background:currentColor}
+.b-green{background:var(--green-soft);color:var(--green);border-color:rgba(69,212,131,.15)}
+.b-yellow{background:var(--yellow-soft);color:var(--yellow);border-color:rgba(244,187,79,.15)}
+.b-red{background:var(--red-soft);color:var(--red);border-color:rgba(255,98,98,.15)}
+.b-gray{background:#191919;color:#979797;border-color:#272727}
+.b-blue{background:var(--blue-soft);color:var(--blue);border-color:rgba(77,163,255,.15)}
+
+.kmono{
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  font-size:.76rem;color:#f0f0f0
+}
+
+/* ── Generated keys ── */
+.gen-out{margin-top:14px;display:none;border-top:1px solid var(--border);padding-top:14px}
+.gen-out-title{font-size:.71rem;color:var(--muted2);margin-bottom:8px}
+.key-rows{display:flex;flex-direction:column;gap:6px}
+.key-row{
+  display:flex;align-items:center;gap:8px;background:#090909;border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px
+}
+.key-row .kmono{flex:1;color:#fff}
+
+/* ── Chart ── */
+.chart{display:flex;align-items:flex-end;gap:4px;height:90px;margin-top:10px}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.bar{
+  width:100%;background:linear-gradient(180deg,#fafafa,#6f6f6f);
+  border-radius:4px 4px 1px 1px;min-height:2px;transition:height .3s;opacity:.88
+}
+.bar-wrap:hover .bar{opacity:1}
+.bar-label{font-size:.58rem;color:#646464;white-space:nowrap}
+
+.log-result{font-size:.71rem;font-family:monospace}
+.r-ok{color:var(--green)}.r-err{color:var(--red)}.r-warn{color:var(--yellow)}
+.empty{text-align:center;padding:34px;color:#666;font-size:.8rem}
+
+/* ── Toast / messages ── */
+.toast{
+  position:fixed;bottom:22px;right:22px;background:#f1f1f1;border:1px solid #fff;
+  color:#090909;padding:10px 15px;border-radius:9px;font-size:.78rem;opacity:0;
+  pointer-events:none;transform:translateY(8px);transition:.2s;z-index:99;max-width:340px;
+  box-shadow:0 16px 40px rgba(0,0,0,.4);font-weight:650
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── Modal ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;
+  justify-content:center;z-index:50;backdrop-filter:blur(5px)
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:#111;border:1px solid #353535;border-radius:14px;padding:23px;
+  width:min(390px,calc(100vw - 30px));box-shadow:var(--shadow)
+}
+.modal h3{font-size:.94rem;font-weight:720;margin-bottom:16px}
+.modal .mf{margin-bottom:10px}
+.modal .mf label{display:block;font-size:.69rem;color:var(--muted2);margin-bottom:5px}
+.modal .mf input{
+  width:100%;background:#090909;border:1px solid var(--border2);color:var(--text);
+  padding:9px 10px;border-radius:8px;outline:none
+}
+.modal .mf input:focus{border-color:#666}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* ── Settings ── */
+.settings-note{
+  color:var(--muted2);font-size:.78rem;line-height:1.7;
+  background:#0b0b0b;border:1px solid var(--border);border-radius:9px;padding:12px
+}
+
+/* ── Responsive ── */
+@media(max-width:980px){
+  .cards.c4{grid-template-columns:repeat(2,1fr)}
+  .cards.c3{grid-template-columns:repeat(2,1fr)}
+  .cards.c2{grid-template-columns:1fr}
+  .sidebar{width:180px}
+}
+@media(max-width:720px){
+  .topbar{padding:0 14px}
+  .topbar .pill{display:none}
+  .sidebar{width:68px;padding:12px 7px}
+  .nav-item{justify-content:center;padding:10px}
+  .nav-item{font-size:0;gap:0}
+  .nav-item .ic{width:19px;height:19px}
+  .content{padding:18px 14px}
+  .cards.c4,.cards.c3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:470px){
+  .cards.c4,.cards.c3{grid-template-columns:1fr}
+  .lbox{padding:22px}
+}
+
+
+/* ══ API FEEDBACK / LIVE UI ═════════════════════════════════ */
+.api-state{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 9px;border:1px solid var(--border);
+  border-radius:999px;background:#141414;color:#929292;
+  font-size:.68rem;white-space:nowrap;transition:.18s ease
+}
+.api-state .state-dot{
+  width:7px;height:7px;border-radius:50%;background:#777;
+  box-shadow:0 0 0 3px rgba(255,255,255,.035)
+}
+.api-state.syncing{color:var(--yellow);border-color:rgba(244,187,79,.22);background:var(--yellow-soft)}
+.api-state.syncing .state-dot{background:var(--yellow);animation:pulseDot .8s infinite alternate}
+.api-state.ok{color:var(--green);border-color:rgba(69,212,131,.2);background:var(--green-soft)}
+.api-state.ok .state-dot{background:var(--green)}
+.api-state.error{color:var(--red);border-color:rgba(255,98,98,.24);background:var(--red-soft)}
+.api-state.error .state-dot{background:var(--red)}
+@keyframes pulseDot{from{opacity:.35;transform:scale(.82)}to{opacity:1;transform:scale(1.15)}}
+
+.sync-meta{
+  font-size:.65rem;color:#666;white-space:nowrap
+}
+
+button.is-loading{
+  opacity:.72!important;cursor:wait!important;pointer-events:none!important;
+}
+button.is-loading::after{
+  content:"";display:inline-block;width:11px;height:11px;margin-left:7px;
+  border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;
+  vertical-align:-2px;animation:spin .65s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  display:flex;align-items:center;gap:9px;
+  min-width:220px
+}
+.toast::before{
+  content:"";width:8px;height:8px;border-radius:50%;background:#777;flex:0 0 auto
+}
+.toast.success{background:#f1f1f1;color:#090909;border-color:#fff}
+.toast.success::before{background:var(--green)}
+.toast.error{background:#241111;color:#ffc4c4;border-color:rgba(255,98,98,.42)}
+.toast.error::before{background:var(--red)}
+.toast.info{background:#121d27;color:#bcdfff;border-color:rgba(77,163,255,.35)}
+.toast.info::before{background:var(--blue)}
+.toast.warn{background:#241d10;color:#ffe2a8;border-color:rgba(244,187,79,.36)}
+.toast.warn::before{background:var(--yellow)}
+
+.inline-status{
+  margin:10px 0 0;padding:9px 11px;border-radius:8px;
+  border:1px solid var(--border);background:#0b0b0b;
+  color:#888;font-size:.72rem;display:none
+}
+.inline-status.show{display:block}
+.inline-status.ok{color:var(--green);border-color:rgba(69,212,131,.2);background:var(--green-soft)}
+.inline-status.error{color:var(--red);border-color:rgba(255,98,98,.22);background:var(--red-soft)}
+.inline-status.wait{color:var(--yellow);border-color:rgba(244,187,79,.2);background:var(--yellow-soft)}
+
+tr.loading-row td{color:#777;text-align:center;padding:22px}
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24" fill="none">
+    <path d="M12 3 19 6v5c0 4.5-2.7 7.8-7 10-4.3-2.2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="m9.3 12 1.7 1.8 3.9-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-dashboard" viewBox="0 0 24 24" fill="none">
+    <rect x="4" y="4" width="6" height="6" rx="1.4" stroke="currentColor" stroke-width="1.7"/>
+    <rect x="14" y="4" width="6" height="6" rx="1.4" stroke="currentColor" stroke-width="1.7"/>
+    <rect x="4" y="14" width="6" height="6" rx="1.4" stroke="currentColor" stroke-width="1.7"/>
+    <rect x="14" y="14" width="6" height="6" rx="1.4" stroke="currentColor" stroke-width="1.7"/>
+  </symbol>
+  <symbol id="i-key" viewBox="0 0 24 24" fill="none">
+    <circle cx="8" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M12 12h8m-2 0v3m-3-3v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-history" viewBox="0 0 24 24" fill="none">
+    <path d="M5 8V4m0 4h4M5.4 8A8 8 0 1 1 5 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7"/>
+    <path d="m7.8 7.8 8.4 8.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M4.5 12h15M12 4c2 2.2 3 4.9 3 8s-1 5.8-3 8c-2-2.2-3-4.9-3-8s1-5.8 3-8Z" stroke="currentColor" stroke-width="1.7"/>
+  </symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M19 13.4v-2.8l-2-.6a6.7 6.7 0 0 0-.7-1.6l1-1.8-2-2-1.8 1a6.7 6.7 0 0 0-1.6-.7l-.6-2H8.6l-.6 2a6.7 6.7 0 0 0-1.6.7l-1.8-1-2 2 1 1.8a6.7 6.7 0 0 0-.7 1.6l-2 .6v2.8l2 .6c.2.6.4 1.1.7 1.6l-1 1.8 2 2 1.8-1c.5.3 1 .5 1.6.7l.6 2h2.8l.6-2c.6-.2 1.1-.4 1.6-.7l1.8 1 2-2-1-1.8c.3-.5.5-1 .7-1.6l1.9-.6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════ -->
+<div id="login">
+  <div class="lbox">
+    <div class="login-logo"><svg><use href="#i-logo"></use></svg></div>
+    <h1>License Manager</h1>
+    <div class="sub">Painel administrativo</div>
+    <div class="lfield"><label>API URL</label><input id="l-url" value="https://apis-iknk.onrender.com"></div>
+    <div class="lfield"><label>Admin Token</label><input id="l-token" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <label style="display:flex;align-items:center;gap:8px;color:var(--muted2);font-size:.72rem;margin:2px 0 12px;cursor:pointer;user-select:none">
+      <input id="remember-login" type="checkbox" checked style="accent-color:#f3f3f3">
+      Manter conectado neste navegador <span style="color:#666">· sessão salva automaticamente</span>
+    </label>
+    <button class="lbtn" id="login-btn" onclick="login()">Entrar</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════ -->
+<div id="app" style="display:none;flex-direction:column;height:100vh">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="brand-wrap"><div class="brand-icon"><svg><use href="#i-logo"></use></svg></div><div class="brand">License Manager</div></div>
+    <div class="pill"><div class="dot"></div><span id="t-host"></span></div>
+    <div class="ml">
+      <div>
+        <div id="api-state" class="api-state"><span class="state-dot"></span><span id="api-state-text">Conectando</span></div>
+        <div class="sync-meta" id="sync-meta"></div>
+      </div>
+      <button class="out-btn" onclick="refreshAll()">Atualizar</button>
+      <button class="out-btn" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <button class="nav-item active" onclick="nav('pg-overview')">
+        <span class="ic"><svg><use href="#i-dashboard"></use></svg></span> Visão Geral
+      </button>
+      <button class="nav-item" onclick="nav('pg-keys')">
+        <span class="ic"><svg><use href="#i-key"></use></svg></span> Licenças
+      </button>
+      <button class="nav-item" onclick="nav('pg-logs')">
+        <span class="ic"><svg><use href="#i-history"></use></svg></span> Histórico
+      </button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" onclick="nav('pg-bans')">
+        <span class="ic"><svg><use href="#i-ban"></use></svg></span> Banimentos
+      </button>
+      <button class="nav-item" onclick="nav('pg-ips')">
+        <span class="ic"><svg><use href="#i-globe"></use></svg></span> IPs Bloqueados
+      </button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" onclick="nav('pg-settings')">
+        <span class="ic"><svg><use href="#i-settings"></use></svg></span> Configurações
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ── Visão Geral ── -->
+      <div class="page active" id="pg-overview">
+        <div class="page-title">Visão Geral</div>
+        <div class="cards c4">
+          <div class="card"><div class="cv" id="o-total">—</div><div class="cl">Total de Keys</div></div>
+          <div class="card"><div class="cv" id="o-active" style="color:var(--green)">—</div><div class="cl">Ativas</div></div>
+          <div class="card"><div class="cv" id="o-expired" style="color:var(--yellow)">—</div><div class="cl">Expiradas</div></div>
+          <div class="card"><div class="cv" id="o-revoked" style="color:var(--red)">—</div><div class="cl">Revogadas</div></div>
+        </div>
+        <div class="cards c3">
+          <div class="card"><div class="cv" id="o-soon" style="color:var(--yellow)">—</div><div class="cl">Expira em 7 dias</div></div>
+          <div class="card"><div class="cv" id="o-banned" style="color:var(--red)">—</div><div class="cl">HWIDs Banidos</div></div>
+          <div class="card"><div class="cv" id="o-bips" style="color:var(--red)">—</div><div class="cl">IPs Bloqueados</div></div>
+        </div>
+        <div class="box">
+          <div class="box-title">Ativações nos últimos 14 dias</div>
+          <div class="chart" id="chart-daily"></div>
+        </div>
+        <div class="cards c2">
+          <div class="box" style="margin:0">
+            <div class="box-title">Top IPs (24h)</div>
+            <table><thead><tr><th>IP</th><th>Requests</th><th></th></tr></thead>
+            <tbody id="top-ips-tbody"></tbody></table>
+          </div>
+          <div class="box" style="margin:0">
+            <div class="box-title">Erros por tipo (7 dias)</div>
+            <table><thead><tr><th>Tipo</th><th>Count</th></tr></thead>
+            <tbody id="errors-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Licenças ── -->
+      <div class="page" id="pg-keys">
+        <div class="page-title">Licenças</div>
+
+        <!-- Gerar -->
+        <div class="box">
+          <div class="box-title">Gerar licenças</div>
+          <div class="frow">
+            <div class="ff"><label>Qtd</label><input id="g-qty" type="number" value="1" min="1" max="500" class="w80"></div>
+            <div class="ff"><label>Dias</label><input id="g-days" type="number" value="30" min="1" class="w80"></div>
+            <div class="ff"><label>Prefixo</label><input id="g-pre" value="EVS" class="w80"></div>
+            <div class="ff"><label>Nota</label><input id="g-note" placeholder="opcional" class="w160"></div>
+            <button class="btn-primary" onclick="generate(this)">Gerar</button>
+          </div>
+          <div class="gen-out" id="gen-out">
+            <div class="gen-out-title" id="gen-out-title"></div>
+            <div class="key-rows" id="gen-key-rows"></div>
+          </div>
+        </div>
+
+        <!-- Lista -->
+        <div class="box">
+          <div class="box-row">
+            <div class="box-title" style="margin:0">Keys <span id="keys-count" style="color:var(--muted);font-weight:400"></span></div>
+            <div style="display:flex;gap:6px">
+              <input class="search-input" id="k-search" placeholder="Buscar..." oninput="filterKeys()" style="width:180px">
+              <button class="btn-ghost" onclick="loadKeys(true)">↻</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Key</th><th>Status</th><th>HWID</th><th>Expira</th><th>Criada</th><th>Nota</th><th></th></tr></thead>
+              <tbody id="keys-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Histórico ── -->
+      <div class="page" id="pg-logs">
+        <div class="page-title">Histórico de Acessos</div>
+        <div class="box">
+          <div class="box-row" style="margin:0 0 14px">
+            <div style="display:flex;gap:8px">
+              <input class="search-input" id="log-search" placeholder="Filtrar por key, HWID ou IP..." oninput="filterLogs()" style="width:220px">
+              <select id="log-result-filter" class="ff select" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:6px;outline:none" onchange="filterLogs()">
+                <option value="">Todos</option>
+                <option value="ok">ok</option>
+                <option value="invalid_key">invalid_key</option>
+                <option value="expired">expired</option>
+                <option value="revoked">revoked</option>
+                <option value="hwid_mismatch">hwid_mismatch</option>
+                <option value="hwid_banned">hwid_banned</option>
+                <option value="ip_blacklisted">ip_blacklisted</option>
+                <option value="rate_limited">rate_limited</option>
+              </select>
+              <button class="btn-ghost" onclick="loadLogs(true)">↻</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Data</th><th>Key</th><th>HWID</th><th>IP</th><th>Resultado</th><th>Ação</th></tr></thead>
+              <tbody id="logs-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Banimentos ── -->
+      <div class="page" id="pg-bans">
+        <div class="page-title">HWIDs Banidos</div>
+        <div class="box">
+          <div class="box-title">Banir HWID</div>
+          <div class="frow">
+            <div class="ff"><label>HWID (hash ou texto)</label><input id="ban-hwid" placeholder="hash sha256 ou texto" class="w220"></div>
+            <div class="ff"><label>Motivo</label><input id="ban-reason" placeholder="opcional" class="w160"></div>
+            <button class="btn-primary" onclick="banHwid(this)">Banir</button>
+          </div>
+        </div>
+        <div class="box">
+          <div class="box-row" style="margin:0 0 14px">
+            <div class="box-title" style="margin:0">Lista de banidos</div>
+            <button class="btn-ghost" onclick="loadBans(true)">↻</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>HWID (hash)</th><th>Motivo</th><th>Banido em</th><th></th></tr></thead>
+              <tbody id="bans-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── IPs Bloqueados ── -->
+      <div class="page" id="pg-ips">
+        <div class="page-title">IPs Bloqueados</div>
+        <div class="box">
+          <div class="box-title">Bloquear IP</div>
+          <div class="frow">
+            <div class="ff"><label>IP</label><input id="blk-ip" placeholder="ex: 192.168.1.1" class="w160"></div>
+            <div class="ff"><label>Motivo</label><input id="blk-reason" placeholder="opcional" class="w160"></div>
+            <button class="btn-primary" onclick="blacklistIp(this)">Bloquear</button>
+          </div>
+        </div>
+        <div class="box">
+          <div class="box-row" style="margin:0 0 14px">
+            <div class="box-title" style="margin:0">IPs bloqueados</div>
+            <button class="btn-ghost" onclick="loadIps(true)">↻</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>IP</th><th>Motivo</th><th>Bloqueado em</th><th></th></tr></thead>
+              <tbody id="ips-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Configurações ── -->
+      <div class="page" id="pg-settings">
+        <div class="page-title">Configurações</div>
+        <div class="box">
+          <div class="box-title">Painel local</div>
+          <div class="settings-note">
+            Este painel não possui configuração de webhook ou notificações externas.
+            As configurações abaixo mostram apenas a conexão atual com a API e os endpoints disponíveis.
+          </div>
+        </div>
+        <div class="box">
+          <div class="box-title">Informações da API</div>
+          <div class="frow" style="flex-direction:column;align-items:flex-start;gap:8px">
+            <div style="font-size:.8rem;color:var(--muted2)">URL conectada: <span id="cfg-url" style="color:var(--text)"></span></div>
+            <div style="font-size:.8rem;color:var(--muted2)">Status: <span class="badge b-green">Online</span></div>
+          </div>
+        </div>
+        <div class="box">
+          <div class="box-title">Endpoints disponíveis</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:.78rem">
+            <div style="display:flex;gap:8px"><span class="badge b-blue">POST</span><span class="kmono">/validate</span><span style="color:var(--muted2)">Valida key (público)</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-green">POST</span><span class="kmono">/generate</span><span style="color:var(--muted2)">Gera keys</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-green">POST</span><span class="kmono">/renew</span><span style="color:var(--muted2)">Renova expiração</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-yellow">POST</span><span class="kmono">/revoke</span><span style="color:var(--muted2)">Revoga key</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-red">POST</span><span class="kmono">/delete</span><span style="color:var(--muted2)">Deleta permanentemente</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-yellow">POST</span><span class="kmono">/reset_hwid</span><span style="color:var(--muted2)">Reseta HWID</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-red">POST</span><span class="kmono">/ban_hwid</span><span style="color:var(--muted2)">Bane HWID</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-red">POST</span><span class="kmono">/blacklist_ip</span><span style="color:var(--muted2)">Bloqueia IP</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-blue">GET</span><span class="kmono">/analytics</span><span style="color:var(--muted2)">Estatísticas</span></div>
+            <div style="display:flex;gap:8px"><span class="badge b-blue">GET</span><span class="kmono">/logs</span><span style="color:var(--muted2)">Histórico de acessos</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /shell -->
+</div><!-- /app -->
+
+<!-- Modal Renovar -->
+<div class="modal-bg" id="modal-renew">
+  <div class="modal">
+    <h3>Renovar licença</h3>
+    <input type="hidden" id="renew-key">
+    <div class="mf"><label>Key</label><input id="renew-key-display" readonly style="color:var(--muted2)"></div>
+    <div class="mf"><label>Dias a adicionar</label><input id="renew-days" type="number" value="30" min="1"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('modal-renew')">Cancelar</button>
+      <button class="btn-primary" onclick="doRenew(this)">Renovar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let API='', TOKEN='', ALL_KEYS=[], ALL_LOGS=[];
+let CURRENT_PAGE='pg-overview';
+
+const SESSION_KEY='license_manager_session_v2';
+
+function saveSession(){
+  const remember=document.getElementById('remember-login')?.checked !== false;
+  if(!remember){
+    localStorage.removeItem(SESSION_KEY);
+    return;
+  }
+
+  localStorage.setItem(SESSION_KEY,JSON.stringify({
+    api:API,
+    token:TOKEN,
+    page:CURRENT_PAGE,
+    savedAt:Date.now()
+  }));
+}
+
+function readSession(){
+  try{
+    const raw=localStorage.getItem(SESSION_KEY);
+    if(!raw) return null;
+
+    const data=JSON.parse(raw);
+    if(!data || typeof data.api!=='string' || typeof data.token!=='string'){
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return data;
+  }catch{
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+}
+
+function clearSession(){
+  localStorage.removeItem(SESSION_KEY);
+}
+
+function showApp(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('t-host').textContent=API.replace(/^https?:\/\//,'');
+  document.getElementById('cfg-url').textContent=API;
+}
+
+function showLogin(){
+  document.getElementById('login').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+async function verifyAdmin(){
+  const r=await fetch(`${API}/keys`,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Admin-Token':TOKEN
+    },
+    body:'{}',
+    cache:'no-store'
+  });
+
+  let data={};
+  try{ data=await r.json(); }catch{}
+
+  if(!r.ok || !data.success){
+    const err=new Error(data.message || `HTTP ${r.status}`);
+    err.status=r.status;
+    throw err;
+  }
+
+  return data;
+}
+
+// ── Login / sessão persistente ────────────────────────────────
+async function login(){
+  if(document.getElementById('login-btn')?.disabled) return;
+
+  API=document.getElementById('l-url').value.trim().replace(/\/$/,'');
+  TOKEN=document.getElementById('l-token').value.trim();
+
+  const err=document.getElementById('lerr');
+  err.style.display='none';
+
+  if(!API || !TOKEN){
+    showErr('Preencha todos os campos.');
+    return;
+  }
+
+  setLoginLoading(true);
+
+  // Salva antes da chamada para que um F5 durante um atraso do Render não perca os campos.
+  saveSession();
+
+  try{
+    await verifyAdmin();
+
+    CURRENT_PAGE=CURRENT_PAGE || 'pg-overview';
+    saveSession();
+    showApp();
+    markSyncSuccess();
+    activatePage(CURRENT_PAGE);
+    loadAll();
+
+  }catch(e){
+    if(e?.status===401){
+      showErr('Senha administrativa incorreta.');
+    }else if(e?.status===429){
+      // NÃO apaga a sessão por rate limit.
+      showErr('A API limitou temporariamente as tentativas. Sua sessão não foi apagada.');
+    }else{
+      // NÃO apaga token/sessão por falha temporária do Render ou rede.
+      showErr('API temporariamente indisponível. Tente novamente em alguns segundos.');
+    }
+  }finally{
+    setLoginLoading(false);
+  }
+}
+function setLoginLoading(loading){
+  const btn=document.getElementById('login-btn');
+  if(!btn) return;
+  btn.disabled=!!loading;
+  btn.textContent=loading ? 'Entrando...' : 'Entrar';
+  btn.style.opacity=loading ? '.72' : '1';
+  btn.style.cursor=loading ? 'wait' : 'pointer';
+}
+
+function showErr(m){
+  const e=document.getElementById('lerr');
+  e.textContent=m;
+  e.style.display='block';
+}
+
+function logout(){
+  clearSession();
+
+  API='';
+  TOKEN='';
+  ALL_KEYS=[];
+  ALL_LOGS=[];
+  CURRENT_PAGE='pg-overview';
+
+  document.getElementById('l-token').value='';
+  showLogin();
+}
+
+// ── Nav ──────────────────────────────────────────────────────
+function activatePage(id){
+  CURRENT_PAGE=id || 'pg-overview';
+
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+
+  const page=document.getElementById(CURRENT_PAGE);
+  if(page) page.classList.add('active');
+
+  const btn=[...document.querySelectorAll('.nav-item')]
+    .find(b => (b.getAttribute('onclick') || '').includes(`'${CURRENT_PAGE}'`));
+
+  if(btn) btn.classList.add('active');
+
+  if(API && TOKEN) saveSession();
+}
+
+function nav(id){
+  activatePage(id);
+
+  if(id==='pg-overview') loadAnalytics();
+  if(id==='pg-keys') loadKeys();
+  if(id==='pg-logs') loadLogs();
+  if(id==='pg-bans') loadBans();
+  if(id==='pg-ips') loadIps();
+}
+
+function loadAll(){
+  // Sempre lê os dados reais da API.
+  loadAnalytics();
+  loadKeys();
+
+  if(CURRENT_PAGE==='pg-logs') loadLogs();
+  if(CURRENT_PAGE==='pg-bans') loadBans();
+  if(CURRENT_PAGE==='pg-ips') loadIps();
+}
+
+
+// ── Feedback visual / estado da API ──────────────────────────
+let PENDING_REQUESTS=0;
+let LAST_SYNC_AT=null;
+
+function setApiState(state,text){
+  const box=document.getElementById('api-state');
+  const label=document.getElementById('api-state-text');
+  if(!box||!label) return;
+  box.className=`api-state ${state||''}`.trim();
+  label.textContent=text || (state==='ok'?'Online':state==='syncing'?'Sincronizando':'Erro');
+}
+
+function updateSyncMeta(){
+  const el=document.getElementById('sync-meta');
+  if(!el) return;
+  el.textContent=LAST_SYNC_AT ? `Última sync ${LAST_SYNC_AT.toLocaleTimeString()}` : '';
+}
+
+function markSyncSuccess(){
+  LAST_SYNC_AT=new Date();
+  setApiState('ok','API online');
+  updateSyncMeta();
+}
+
+function setButtonLoading(btn,loading,label){
+  if(!btn) return;
+  if(loading){
+    if(!btn.dataset.oldText) btn.dataset.oldText=btn.textContent;
+    btn.classList.add('is-loading');
+    if(label) btn.textContent=label;
+    btn.disabled=true;
+  }else{
+    btn.classList.remove('is-loading');
+    btn.disabled=false;
+    if(btn.dataset.oldText){
+      btn.textContent=btn.dataset.oldText;
+      delete btn.dataset.oldText;
+    }
+  }
+}
+
+function loadingRow(tbodyId,colspan,text='Carregando dados da API...'){
+  const tb=document.getElementById(tbodyId);
+  if(tb) tb.innerHTML=`<tr class="loading-row"><td colspan="${colspan}">${text}</td></tr>`;
+}
+
+async function refreshAll(){
+  toast('Sincronizando painel com a API...','info');
+  setApiState('syncing','Sincronizando');
+  try{
+    await Promise.all([
+      loadAnalytics(),
+      loadKeys(),
+      CURRENT_PAGE==='pg-logs' ? loadLogs() : Promise.resolve(),
+      CURRENT_PAGE==='pg-bans' ? loadBans() : Promise.resolve(),
+      CURRENT_PAGE==='pg-ips' ? loadIps() : Promise.resolve()
+    ]);
+    markSyncSuccess();
+    toast('Painel atualizado com sucesso.','success');
+  }catch(e){
+    setApiState('error','Falha na API');
+    toast(e.message || 'Falha ao sincronizar o painel.','error');
+  }
+}
+
+function apiMessage(data,fallback){
+  return (data && (data.message || data.error)) || fallback || 'Operação concluída.';
+}
+
+// ── API helpers ──────────────────────────────────────────────
+async function apiFetch(path,body={},method='POST'){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),15000);
+
+  PENDING_REQUESTS++;
+  setApiState('syncing','Processando');
+
+  try{
+    const r=await fetch(`${API}${path}`,{
+      method,
+      headers:{
+        'Content-Type':'application/json',
+        'X-Admin-Token':TOKEN
+      },
+      body:method==='GET'?undefined:JSON.stringify(body),
+      cache:'no-store',
+      signal:controller.signal
+    });
+
+    const raw=await r.text();
+    let data={};
+
+    try{
+      data=raw ? JSON.parse(raw) : {};
+    }catch{
+      throw new Error(`Resposta inválida da API (HTTP ${r.status}).`);
+    }
+
+    if(r.status===401){
+      clearSession();
+      TOKEN='';
+      showLogin();
+      showErr('Sua sessão não é mais válida. Entre novamente.');
+      const err=new Error(apiMessage(data,'Não autorizado.'));
+      err.status=401;
+      throw err;
+    }
+
+    if(r.status===429){
+      const err=new Error(apiMessage(data,'Muitas tentativas. Aguarde alguns instantes.'));
+      err.status=429;
+      throw err;
+    }
+
+    if(!r.ok){
+      const err=new Error(apiMessage(data,`Erro HTTP ${r.status}`));
+      err.status=r.status;
+      throw err;
+    }
+
+    // Alguns endpoints retornam HTTP 200 com success:false.
+    if(data && data.success===false){
+      throw new Error(apiMessage(data,'A API recusou a operação.'));
+    }
+
+    markSyncSuccess();
+    return data;
+
+  }catch(e){
+    if(e.name==='AbortError'){
+      const timeoutErr=new Error('A API demorou mais de 15 segundos para responder.');
+      setApiState('error','Timeout');
+      throw timeoutErr;
+    }
+
+    if(e.status!==401){
+      setApiState('error','Falha na API');
+    }
+    throw e;
+
+  }finally{
+    clearTimeout(timer);
+    PENDING_REQUESTS=Math.max(0,PENDING_REQUESTS-1);
+    if(PENDING_REQUESTS===0 && document.getElementById('app').style.display!=='none'){
+      // Se não houve erro recente marcado, a próxima resposta boa já colocou "API online".
+    }
+  }
+}
+
+// ── Analytics ────────────────────────────────────────────────
+async function loadAnalytics(){
+  try{
+    const d=await apiFetch('/analytics');
+    const s=d.summary || {};
+    document.getElementById('o-total').textContent=s.total ?? 0;
+    document.getElementById('o-active').textContent=s.active ?? 0;
+    document.getElementById('o-expired').textContent=s.expired ?? 0;
+    document.getElementById('o-revoked').textContent=s.revoked ?? 0;
+    document.getElementById('o-soon').textContent=s.expiring_soon ?? 0;
+    document.getElementById('o-banned').textContent=s.banned_hwids ?? 0;
+    document.getElementById('o-bips').textContent=s.blocked_ips ?? 0;
+    renderChart(d.daily_activations || d.daily || []);
+    renderTopIps(d.top_ips || []);
+    renderErrors(d.error_types || d.errors || []);
+    return d;
+  }catch(e){
+    console.error('analytics:',e);
+    throw e;
+  }
+}
+
+function renderChart(data){
+  const el=document.getElementById('chart-daily');
+  if(!data.length){el.innerHTML='<div style="color:var(--muted);font-size:.78rem">Sem dados ainda.</div>';return;}
+  const max=Math.max(...data.map(d=>d.count),1);
+  el.innerHTML=data.map(d=>{
+    const h=Math.max(Math.round((d.count/max)*72),2);
+    const day=d.day.slice(5); // MM-DD
+    return `<div class="bar-wrap" title="${d.day}: ${d.count} ativações">
+      <div class="bar" style="height:${h}px"></div>
+      <div class="bar-label">${day}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTopIps(ips){
+  const tb=document.getElementById('top-ips-tbody');
+  if(!ips.length){tb.innerHTML=`<tr><td colspan="3" class="empty">Nenhum dado.</td></tr>`;return;}
+  tb.innerHTML=ips.map(r=>`<tr>
+    <td style="font-family:monospace;font-size:.78rem">${r.ip}</td>
+    <td>${r.count}</td>
+    <td><button class="btn-sm red" onclick="quickBlacklistIp('${r.ip}',this)">Bloquear</button></td>
+  </tr>`).join('');
+}
+
+function renderErrors(errs){
+  const tb=document.getElementById('errors-tbody');
+  if(!errs.length){tb.innerHTML=`<tr><td colspan="2" class="empty">Nenhum erro.</td></tr>`;return;}
+  tb.innerHTML=errs.map(r=>`<tr>
+    <td><span class="log-result ${r.type==='ok'?'r-ok':r.type.includes('ban')||r.type.includes('block')||r.type.includes('limit')?'r-err':'r-warn'}">${r.type}</span></td>
+    <td>${r.count}</td>
+  </tr>`).join('');
+}
+
+
+function escapeText(value=''){
+  return String(value)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+function jsString(value=''){
+  return String(value).replaceAll("\\","\\\\").replaceAll("'","\\'");
+}
+
+// ── Keys ─────────────────────────────────────────────────────
+async function loadKeys(showFeedback=false){
+  loadingRow('keys-tbody',7);
+  try{
+    const d=await apiFetch('/keys');
+    ALL_KEYS=Array.isArray(d.keys)?d.keys:[];
+    document.getElementById('keys-count').textContent=`(${d.total ?? ALL_KEYS.length})`;
+    renderKeys(ALL_KEYS);
+    if(showFeedback) toast('Licenças atualizadas.','success');
+    return d;
+  }catch(e){
+    const tb=document.getElementById('keys-tbody');
+    if(tb) tb.innerHTML=`<tr><td colspan="7" class="empty">Erro: ${escapeText(e.message)}</td></tr>`;
+    if(showFeedback) toast(e.message,'error');
+    throw e;
+  }
+}
+
+function renderKeys(keys){
+  const tb=document.getElementById('keys-tbody');
+  if(!keys.length){tb.innerHTML=`<tr><td colspan="7" class="empty">Nenhuma licença.</td></tr>`;return;}
+  tb.innerHTML=keys.map(k=>{
+    const st=!k.active
+      ?`<span class="badge b-gray">Revogada</span>`
+      :k.expires.expired
+      ?`<span class="badge b-red">Expirada</span>`
+      :k.expires.days_left<=3
+      ?`<span class="badge b-yellow">${k.expires.days_left}d</span>`
+      :`<span class="badge b-green">Ativa</span>`;
+    const hwid=k.hwid_bound?`<span class="badge b-gray">Vinculada</span>`:`<span style="color:var(--muted)">—</span>`;
+    return `<tr>
+      <td><span class="kmono">${k.key}</span></td>
+      <td>${st}</td>
+      <td>${hwid}</td>
+      <td style="color:var(--muted2);font-size:.75rem">${k.expires.date_utc}</td>
+      <td style="color:var(--muted2)">${k.created_at}</td>
+      <td style="color:var(--muted2)">${k.note||'—'}</td>
+      <td><div class="td-actions">
+        <button class="btn-sm" onclick="copyText('${k.key}')">Copiar</button>
+        <button class="btn-sm green" onclick="openRenew('${k.key}')">Renovar</button>
+        <button class="btn-sm" onclick="resetHwid('${k.key}',this)">Reset HWID</button>
+        <button class="btn-sm yellow" onclick="revokeKey('${k.key}',this)">Revogar</button>
+        <button class="btn-sm red" onclick="deleteKey('${k.key}',this)">Deletar</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterKeys(){
+  const q=document.getElementById('k-search').value.toLowerCase();
+  renderKeys(ALL_KEYS.filter(k=>k.key.toLowerCase().includes(q)||(k.note||'').toLowerCase().includes(q)));
+}
+
+async function generate(btn){
+  const qty=parseInt(document.getElementById('g-qty').value)||1;
+  const days=parseInt(document.getElementById('g-days').value)||30;
+  const pre=document.getElementById('g-pre').value.trim()||'EVS';
+  const note=document.getElementById('g-note').value.trim();
+
+  setButtonLoading(btn,true,'Gerando');
+  toast('Gerando licença(s)...','info');
+
+  try{
+    const d=await apiFetch('/generate',{quantity:qty,days,prefix:pre,note});
+    const keys=Array.isArray(d.keys)?d.keys:[];
+    const out=document.getElementById('gen-out');
+    document.getElementById('gen-out-title').textContent=
+      `${keys.length} chave(s) criada(s) — expira ${d.expires?.date_utc || '—'}`;
+
+    document.getElementById('gen-key-rows').innerHTML=keys.map(k=>
+      `<div class="key-row"><span class="kmono">${escapeText(k)}</span><button class="btn-sm" onclick="copyText('${jsString(k)}')">Copiar</button></div>`
+    ).join('');
+
+    out.style.display='block';
+    await Promise.all([loadKeys(),loadAnalytics()]);
+    toast(apiMessage(d,'Licença(s) gerada(s) com sucesso.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+
+function openRenew(key){
+  document.getElementById('renew-key').value=key;
+  document.getElementById('renew-key-display').value=key;
+  document.getElementById('modal-renew').classList.add('open');
+}
+async function doRenew(btn){
+  const key=document.getElementById('renew-key').value;
+  const days=parseInt(document.getElementById('renew-days').value)||30;
+
+  setButtonLoading(btn,true,'Renovando');
+  try{
+    const d=await apiFetch('/renew',{key,days});
+    closeModal('modal-renew');
+    await Promise.all([loadKeys(),loadAnalytics()]);
+    toast(apiMessage(d,`Licença renovada por ${days} dias.`),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+async function revokeKey(key,btn){
+  if(!confirm(`Revogar ${key}?`)) return;
+  setButtonLoading(btn,true,'Revogando');
+  try{
+    const d=await apiFetch('/revoke',{key});
+    await Promise.all([loadKeys(),loadAnalytics()]);
+    toast(apiMessage(d,'Licença revogada.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+async function deleteKey(key,btn){
+  if(!confirm(`Deletar permanentemente ${key}?\nEsta ação não pode ser desfeita.`)) return;
+  setButtonLoading(btn,true,'Deletando');
+  try{
+    const d=await apiFetch('/delete',{key});
+    await Promise.all([loadKeys(),loadAnalytics()]);
+    toast(apiMessage(d,'Licença deletada.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+async function resetHwid(key,btn){
+  if(!confirm(`Resetar HWID de ${key}?`)) return;
+  setButtonLoading(btn,true,'Resetando');
+  try{
+    const d=await apiFetch('/reset_hwid',{key});
+    await loadKeys();
+    toast(apiMessage(d,'HWID resetado.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+
+// ── Logs ─────────────────────────────────────────────────────
+async function loadLogs(showFeedback=false){
+  loadingRow('logs-tbody',6);
+  try{
+    const d=await apiFetch('/logs');
+    ALL_LOGS=Array.isArray(d.logs)?d.logs:[];
+    renderLogs(ALL_LOGS);
+    if(showFeedback) toast('Histórico atualizado.','success');
+    return d;
+  }catch(e){
+    const tb=document.getElementById('logs-tbody');
+    if(tb) tb.innerHTML=`<tr><td colspan="6" class="empty">Erro: ${escapeText(e.message)}</td></tr>`;
+    if(showFeedback) toast(e.message,'error');
+    throw e;
+  }
+}
+
+function renderLogs(logs){
+  const tb=document.getElementById('logs-tbody');
+  if(!logs.length){tb.innerHTML=`<tr><td colspan="6" class="empty">Nenhum registro.</td></tr>`;return;}
+  tb.innerHTML=logs.map(l=>{
+    const cls=l.result==='ok'?'r-ok':['hwid_banned','ip_blacklisted','rate_limited','hwid_mismatch'].includes(l.result)?'r-err':'r-warn';
+    return `<tr>
+      <td style="color:var(--muted2);font-size:.75rem;white-space:nowrap">${l.ts}</td>
+      <td><span class="kmono">${escapeText(l.key||'—')}</span></td>
+      <td style="font-family:monospace;font-size:.72rem;color:var(--muted2)">${escapeText(l.hwid||'—')}</td>
+      <td style="font-family:monospace;font-size:.72rem;color:var(--muted2)">${escapeText(l.ip||'—')}</td>
+      <td><span class="log-result ${cls}">${escapeText(l.result)}</span></td>
+      <td>${l.hwid?`<button class="btn-sm red" onclick="banLogHwid('${jsString(l.hwid)}',this)">Banir HWID</button>`:'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterLogs(){
+  const q  = document.getElementById('log-search').value.toLowerCase();
+  const rf = document.getElementById('log-result-filter').value;
+  renderLogs(ALL_LOGS.filter(l=>
+    (!q||(l.key||'').toLowerCase().includes(q)||(l.hwid||'').toLowerCase().includes(q)||(l.ip||'').toLowerCase().includes(q))&&
+    (!rf||l.result===rf)
+  ));
+}
+
+
+async function banLogHwid(hwid,btn){
+  if(!hwid) return;
+  if(!confirm('Banir este HWID?')) return;
+  setButtonLoading(btn,true,'Banindo');
+  try{
+    const d=await apiFetch('/ban_hwid',{hwid,reason:'Banido pelo histórico'});
+    await Promise.all([loadBans(),loadLogs(),loadAnalytics()]);
+    toast(apiMessage(d,'HWID banido.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+
+// ── Bans ─────────────────────────────────────────────────────
+async function loadBans(showFeedback=false){
+  loadingRow('bans-tbody',4);
+  try{
+    const d=await apiFetch('/banned_hwids');
+    const tb=document.getElementById('bans-tbody');
+    const rows=Array.isArray(d.banned)?d.banned:[];
+    if(!rows.length){
+      tb.innerHTML=`<tr><td colspan="4" class="empty">Nenhum HWID banido.</td></tr>`;
+    }else{
+      tb.innerHTML=rows.map(b=>`<tr>
+        <td><span style="font-family:monospace;font-size:.75rem;color:var(--muted2)">${escapeText(b.hwid)}</span></td>
+        <td style="color:var(--muted2)">${escapeText(b.reason||'—')}</td>
+        <td style="color:var(--muted2);font-size:.75rem">${escapeText(b.banned_at||'—')}</td>
+        <td><button class="btn-sm green" onclick="unbanHwid('${jsString(b.hwid)}',this)">Desbanir</button></td>
+      </tr>`).join('');
+    }
+    if(showFeedback) toast('Banimentos atualizados.','success');
+    return d;
+  }catch(e){
+    const tb=document.getElementById('bans-tbody');
+    if(tb) tb.innerHTML=`<tr><td colspan="4" class="empty">Erro: ${escapeText(e.message)}</td></tr>`;
+    if(showFeedback) toast(e.message,'error');
+    throw e;
+  }
+}
+
+async function banHwid(btn){
+  const hwid=document.getElementById('ban-hwid').value.trim();
+  const reason=document.getElementById('ban-reason').value.trim();
+  if(!hwid){toast('Informe o HWID.','warn');return;}
+
+  setButtonLoading(btn,true,'Banindo');
+  try{
+    const d=await apiFetch('/ban_hwid',{hwid,reason});
+    document.getElementById('ban-hwid').value='';
+    document.getElementById('ban-reason').value='';
+    await Promise.all([loadBans(),loadAnalytics()]);
+    toast(apiMessage(d,'HWID banido.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+async function unbanHwid(hwid,btn){
+  if(!confirm('Desbanir este HWID?')) return;
+  setButtonLoading(btn,true,'Desbanindo');
+  try{
+    const d=await apiFetch('/unban_hwid',{hwid});
+    await Promise.all([loadBans(),loadAnalytics()]);
+    toast(apiMessage(d,'HWID desbanido.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+
+// ── IPs ──────────────────────────────────────────────────────
+async function loadIps(showFeedback=false){
+  loadingRow('ips-tbody',4);
+  try{
+    const d=await apiFetch('/blacklisted_ips');
+    const tb=document.getElementById('ips-tbody');
+    const rows=Array.isArray(d.ips)?d.ips:[];
+    if(!rows.length){
+      tb.innerHTML=`<tr><td colspan="4" class="empty">Nenhum IP bloqueado.</td></tr>`;
+    }else{
+      tb.innerHTML=rows.map(r=>`<tr>
+        <td style="font-family:monospace;font-size:.78rem">${escapeText(r.ip)}</td>
+        <td style="color:var(--muted2)">${escapeText(r.reason||'—')}</td>
+        <td style="color:var(--muted2);font-size:.75rem">${escapeText(r.blacklisted_at||'—')}</td>
+        <td><button class="btn-sm green" onclick="unblacklistIp('${jsString(r.ip)}',this)">Desbloquear</button></td>
+      </tr>`).join('');
+    }
+    if(showFeedback) toast('IPs bloqueados atualizados.','success');
+    return d;
+  }catch(e){
+    const tb=document.getElementById('ips-tbody');
+    if(tb) tb.innerHTML=`<tr><td colspan="4" class="empty">Erro: ${escapeText(e.message)}</td></tr>`;
+    if(showFeedback) toast(e.message,'error');
+    throw e;
+  }
+}
+
+async function blacklistIp(btn){
+  const ip=document.getElementById('blk-ip').value.trim();
+  const reason=document.getElementById('blk-reason').value.trim();
+  if(!ip){toast('Informe o IP.','warn');return;}
+
+  setButtonLoading(btn,true,'Bloqueando');
+  try{
+    const d=await apiFetch('/blacklist_ip',{ip,reason});
+    document.getElementById('blk-ip').value='';
+    document.getElementById('blk-reason').value='';
+    await Promise.all([loadIps(),loadAnalytics()]);
+    toast(apiMessage(d,'IP bloqueado.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+async function unblacklistIp(ip,btn){
+  if(!confirm(`Desbloquear ${ip}?`)) return;
+  setButtonLoading(btn,true,'Desbloqueando');
+  try{
+    const d=await apiFetch('/unblacklist_ip',{ip});
+    await Promise.all([loadIps(),loadAnalytics()]);
+    toast(apiMessage(d,'IP desbloqueado.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+async function quickBlacklistIp(ip,btn){
+  if(!confirm(`Bloquear IP ${ip}?`)) return;
+  setButtonLoading(btn,true,'Bloqueando');
+  try{
+    const d=await apiFetch('/blacklist_ip',{ip,reason:'flagged from analytics'});
+    await Promise.all([loadAnalytics(),loadIps()]);
+    toast(apiMessage(d,'IP bloqueado.'),'success');
+  }catch(e){
+    toast(e.message,'error');
+  }finally{
+    setButtonLoading(btn,false);
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+function copyText(t){
+  navigator.clipboard.writeText(t).catch(()=>{const e=document.createElement('textarea');e.value=t;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);});
+  toast('Copiado!');
+}
+let toastTimer;
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg || 'Concluído.';
+  t.className=`toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{
+    t.classList.remove('show');
+  },3200);
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// fechar modal clicando fora
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// login com Enter
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && document.getElementById('login').style.display!=='none'){
+    login();
+  }
+});
+
+// Restaura sessão automaticamente após F5 ou ao abrir novamente.
+document.addEventListener('DOMContentLoaded',async ()=>{
+  const saved=readSession();
+
+  if(!saved){
+    showLogin();
+    return;
+  }
+
+  API=(saved.api || '').replace(/\/$/,'');
+  TOKEN=saved.token || '';
+  CURRENT_PAGE=saved.page || 'pg-overview';
+
+  document.getElementById('l-url').value=API;
+  document.getElementById('l-token').value=TOKEN;
+  document.getElementById('remember-login').checked=true;
+
+  if(!API || !TOKEN){
+    clearSession();
+    showLogin();
+    return;
+  }
+
+  try{
+    await verifyAdmin();
+
+    showApp();
+    markSyncSuccess();
+    activatePage(CURRENT_PAGE);
+    loadAll();
+
+  }catch(e){
+    // Só apaga credenciais quando a API confirma que a senha é inválida.
+    if(e?.status===401){
+      clearSession();
+      TOKEN='';
+      document.getElementById('l-token').value='';
+      showLogin();
+      showErr('A senha salva não é mais válida. Entre novamente.');
+      return;
+    }
+
+    // 429, timeout, Render acordando ou falha de rede:
+    // mantém a sessão salva e deixa o usuário tentar novamente.
+    showLogin();
+    document.getElementById('l-token').value=TOKEN;
+
+    if(e?.status===429){
+      showErr('Sessão preservada. A API está limitando tentativas temporariamente.');
+    }else{
+      showErr('Sessão preservada. A API não respondeu agora; tente Entrar novamente.');
+    }
+  }
+});
+</script>
+</body>
+</html>
